@@ -21,11 +21,12 @@ exports.Person = connection_1.default.define("persona", {
     },
     nombre: {
         type: sequelize_1.DataTypes.STRING,
-        unique: true,
-        allowNull: false
+        allowNull: false,
+        unique: true
     },
     email: {
         type: sequelize_1.DataTypes.STRING,
+        unique: true,
         allowNull: false
     },
     password: {
@@ -36,4 +37,7 @@ exports.Person = connection_1.default.define("persona", {
         type: sequelize_1.DataTypes.BOOLEAN,
         allowNull: false
     }
+}, {
+    tableName: 'persona',
+    timestamps: false
 });

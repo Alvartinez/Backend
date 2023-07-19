@@ -1,9 +1,12 @@
 import { Router } from "express";
-import { LoginPersona, newPersona } from "../controllers/persona";
+import { getPerson, LoginPersona, newPersona, deletePersona } from "../controllers/persona";
+import validateToken from "./validate-token";
 
 const router = Router();
 
-router.post("/", newPersona);
-router.post("/login", LoginPersona)
+router.get("/", getPerson);
+router.post("/newUser", newPersona);
+router.post("/loginUser", LoginPersona);
+router.delete("/", deletePersona)
 
 export default router;

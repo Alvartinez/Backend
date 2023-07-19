@@ -17,15 +17,14 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const curso_1 = __importDefault(require("../routers/curso"));
 const persona_1 = __importDefault(require("../routers/persona"));
-const curso_2 = require("./curso");
-const persona_2 = require("./persona");
+const connection_1 = __importDefault(require("../db/connection"));
 class Server {
     constructor() {
         this.app = (0, express_1.default)();
         this.port = process.env.PORT || "3006";
         this.listen();
-        this.routers();
         this.middlewares();
+        this.routers();
         this.dbConnect();
     }
     listen() {
@@ -35,7 +34,7 @@ class Server {
     }
     routers() {
         this.app.use("/api/cursos", curso_1.default),
-            this.app.use("/api/Personas", persona_1.default);
+            this.app.use("/api/personas", persona_1.default);
     }
     middlewares() {
         //Paseo body
@@ -46,8 +45,7 @@ class Server {
     dbConnect() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                yield curso_2.Course.sync();
-                yield persona_2.Person.sync();
+                yield connection_1.default.authenticate();
                 console.log("Connection has been established successfully.");
             }
             catch (error) {

@@ -1,23 +1,25 @@
 import sequelize from "../db/connection";
 import { DataTypes } from "sequelize";
 
-export const Person = sequelize.define("rol-permiso", {
-    id_rol_permiso: {
+export const Aprendiz = sequelize.define("aprendiz", {
+    id_aprendiz: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
-    id_rol: {
+    id_persona: {
         type: DataTypes.INTEGER,
         references: {
-            model: "rol",
-            key: "id_rol"
+            model: "persona",
+            key: "id_persona"
         }
     },
-    lista_permiso: {
-        type: DataTypes.JSON,
-        unique: true,
+    fecha_registro: {
+        type: DataTypes.DATE,
         allowNull:false
     }
     
+},{
+    tableName: 'aprendiz',
+    timestamps: false
 });

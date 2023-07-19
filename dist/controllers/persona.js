@@ -12,56 +12,115 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LoginPersona = exports.newPersona = void 0;
+exports.deletePersona = exports.LoginPersona = exports.newPersona = exports.getPerson = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const persona_1 = require("../models/persona");
+const aprendiz_1 = require("../models/aprendiz");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const newPersona = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { username, password } = req.body;
-    const hashedPassword = yield bcrypt_1.default.hash(password, 10);
-    const user = yield persona_1.Person.findOne({ where: { email: username } });
-    if (user) {
+//Trae la información del usuario
+const getPerson = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const listPerson = yield persona_1.Person.findAll();
+    if (listPerson != null) {
         return res.status(400).json({
-            msg: `Ya existe el Usuario ${username}`
+            msg: "No existe ningún registro"
         });
     }
+    res.json(listPerson);
+});
+exports.getPerson = getPerson;
+//Crear un nuevo usuario
+const newPersona = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { nombre, email, password } = req.body;
+    //Validar si existe el usuario
+    const user = yield persona_1.Person.findOne({ where: { email: email } });
+    if (user) {
+        return res.status(400).json({
+            msg: "Ya existe el usuario " + nombre + "."
+        });
+    }
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() + 1;
+    const day = currentDate.getDate();
+    const dateStr = `${day}-${month}-${year}`;
+    const hashedPassword = yield bcrypt_1.default.hash(password, 10);
     try {
-        //Guardamos en la base de datos
-        yield persona_1.Person.create({
-            email: username,
-            password: hashedPassword
+        //Creación del usuario
+        const persona = yield persona_1.Person.create({
+            id_usuario: 1,
+            nombre: nombre,
+            email: email,
+            password: hashedPassword,
+            estado: true
+        });
+        //Traemos el id del usuario creado
+        const identifiador = persona.get();
+        const idPersona = identifiador.id_persona;
+        //Se crea por defecto como rol aprendiz
+        yield aprendiz_1.Aprendiz.create({
+            id_persona: idPersona,
+            fecha_registro: dateStr
         });
         res.json({
-            msg: `Usuario ${username} creado exitosamente`
+            msg: "Usuario" + nombre + "creado exitosamente",
         });
     }
     catch (error) {
         res.status(400).json({
-            msg: "Upps! Ocurrio un error", error
+            msg: "¡Ha ocurrido un error!"
         });
     }
 });
 exports.newPersona = newPersona;
+//El usuario inicia sesión
 const LoginPersona = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { username, password } = req.body;
-    //Validación de la existencia del usuario en la base de datos
-    const user = yield persona_1.Person.findOne({ where: { email: username } });
-    if (!user) {
-        return res.status(400).json({
-            msg: `No existe el usuario ${username} en la base de datos`
+    const { email, password } = req.body;
+    //Valida si el usuario existe
+    const user = yield persona_1.Person.findOne({ where: { email: email } });
+    try {
+        if (!user) {
+            return res.status(400).json({
+                msg: "El usuario no existe, verifique el correo o contraseña"
+            });
+        }
+        //Valida el password
+        const passwordValid = yield bcrypt_1.default.compare(password, user.password);
+        if (!passwordValid) {
+            console.log("hola");
+            return res.status(400).json({
+                msg: "Correo eléctronico o contraseña no valida"
+            });
+        }
+        if (!user.estado) {
+            console.log("Estado Desactivado");
+            return res.status(400).json({
+                msg: user.nombre + " no se encuentra activo, comuníquese con el ADMIN"
+            });
+        }
+        //Se genera el token
+        const token = jsonwebtoken_1.default.sign({
+            email: email
+        }, process.env.PASSWORD_KEY || "Magic Secret");
+        res.json(token);
+    }
+    catch (error) {
+        res.status(400).json({
+            msg: "¡Ha ocurrido un error!"
         });
     }
-    //Validación Password
-    const passwordValid = yield bcrypt_1.default.compare(password, user.password);
-    if (!passwordValid) {
-        return res.status(400).json({
-            msg: `Password incorrecta`
-        });
-    }
-    //Generador del Token
-    const token = jsonwebtoken_1.default.sign({
-        email: username
-    }, process.env.PASSWORD_KEY || "Pepito123");
-    res.json(token);
 });
 exports.LoginPersona = LoginPersona;
+//Elimina a un usuario
+const deletePersona = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { email } = req.body;
+    //Encuentra al usuario
+    const user = yield persona_1.Person.findOne({ where: { email: email } });
+    //Si se encuentra registrado
+    if (!user) {
+        return res.status(400).json({
+            msg: "Se ha generado un error, comuníquese con el ADMIN"
+        });
+    }
+    //Se procede a cambiar el estado
+});
+exports.deletePersona = deletePersona;

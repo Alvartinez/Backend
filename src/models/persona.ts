@@ -16,12 +16,13 @@ export const Person = sequelize.define("persona", {
     },
     nombre: {
         type: DataTypes.STRING,
-        unique: true,
-        allowNull:false
+        allowNull: false,
+        unique:true
     },
     email: {
         type: DataTypes.STRING,
-        allowNull:false
+        unique: true,
+        allowNull: false
     },
     password: {
         type: DataTypes.STRING,
@@ -32,4 +33,7 @@ export const Person = sequelize.define("persona", {
         allowNull:false
     }
     
+},{
+    tableName: 'persona',
+    timestamps: false
 });

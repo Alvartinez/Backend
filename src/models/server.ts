@@ -4,7 +4,7 @@ import routesCourse from "../routers/curso";
 import routesPersona from "../routers/persona";
 import { Course } from "./curso";
 import { Person } from "./persona";
-
+import sequelize from "../db/connection";
 export class Server{
 
     private app: express.Application;
@@ -14,8 +14,8 @@ export class Server{
         this.app = express();
         this.port = process.env.PORT || "3006";   
         this.listen();
-        this.routers();
         this.middlewares();
+        this.routers();
         this.dbConnect();
     }
 
@@ -27,26 +27,24 @@ export class Server{
 
     routers() {
         this.app.use("/api/cursos", routesCourse),
-        this.app.use("/api/Personas", routesPersona)
+        this.app.use("/api/personas", routesPersona)
     }
 
-        middlewares() {
+    middlewares() {
         //Paseo body
         this.app.use(express.json());
 
         //Cors
-        this.app.use(cors())
+        this.app.use(cors());
     }
 
     async dbConnect() {
         try {
-            await Course.sync();
-            await Person.sync();
+            await sequelize.authenticate();
             console.log("Connection has been established successfully.")
         } catch (error) {
             console.error("Unable to connect to the database ", error);
         }
     }
-
 
 }
