@@ -22,4 +22,7 @@ export const Permiso = sequelize.define("permiso", {
         allowNull:false
     }
     
+},{
+    tableName: 'permiso',
+    timestamps: false
 });

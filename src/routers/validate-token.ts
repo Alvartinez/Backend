@@ -10,7 +10,7 @@ const validateToken = (req:Request, res:Response, next:NextFunction) => {
 
             const bearerToken = headerToken.slice(7);
     
-            jwt.verify(bearerToken, process.env.PASSWORD_KEY || "Pepito123");
+            jwt.verify(bearerToken, process.env.PASSWORD_KEY || "Magic Secret");
             
             next(); 
             

@@ -1,22 +1,77 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { Person } from "../models/persona";
-import { Aprendiz } from "../models/aprendiz";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { generateRandomUsername } from "../helper/randomUsername";
+import { User } from "../models/user";
+import { enviarMensajeInsideServer } from "../helper/sendEmail";
+import { Rol } from "../models/rol";
 
-//Trae la información del usuario
-export const getPerson = async (req: Request, res: Response) => { 
+//Trae una lista de usuarios
+export const getPeople = async (req: Request, res: Response) => { 
   
-  const listPerson = await Person.findAll();
+  try {
+    const listPerson = await Person.findAll({
+      include: [
+        { 
+          model: User, 
+          as: 'user', 
+          include: [
+            { model: Rol, as: 'rol' }
+          ]
+        }
+      ]
+    });
 
-  if (listPerson != null) {
-    return res.status(400).json({
-      msg: "No existe ningún registro"
+    if(!listPerson){
+      res.status(400).json({
+        msg: "Se ha ocurrido, consulta al Admin"
+      });
+    }
+
+    res.json({listPerson});
+
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({
+      msg: 'Se ha ocurrido un error'
     });
   }
+}
 
-  res.json(listPerson);
+//Trae a un usuario en específico 
+export const getPerson = async (req:Request, res:Response) => {
 
+  const token:any = req.headers.authorization?.split(" ")[1];
+  const secretKey = process.env.PASSWORD_KEY || "Magic Secret";
+
+  try {
+
+    const decodedToken = jwt.verify(token, secretKey) as JwtPayload;
+
+    const userId = decodedToken.id;
+
+    const user:any = await Person.findOne({ where: { id_persona: userId } });
+
+    if (user) {
+      const userInfo = {
+        nombre: user.nombre,
+        username: user.username,
+        email: user.email,
+        fecha_registro: user.fecha_registro,
+        rol: decodedToken.rol
+      };
+
+      res.json(userInfo);
+
+    } else {
+      res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ msg: 'Se ha ocurrido un error' });
+  }
 }
 
 //Crear un nuevo usuario
@@ -37,32 +92,50 @@ export const newPersona = async (req: Request, res: Response) => {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
   const day = currentDate.getDate();
-  const dateStr = `${day}-${month}-${year}`;
+  const dateStr = `${year}-${month}-${day}`;
   
   const hashedPassword = await bcrypt.hash(password, 10);
+
+  let username = generateRandomUsername(nombre);
+
+  let isUsernameTaken = await User.findOne({ where: { username: username } });
+
+  while (isUsernameTaken) {
+    username = generateRandomUsername(nombre);
+    isUsernameTaken = await User.findOne({ where: { username: username } });
+  }
 
   try {
     //Creación del usuario
     const persona = await Person.create({
-      id_usuario: 1,
       nombre: nombre,
       email: email,
-      password: hashedPassword,
-      estado: true
-    });
-
-    //Traemos el id del usuario creado
-    const identifiador = persona.get();
-    const idPersona = identifiador.id_persona;
-
-    //Se crea por defecto como rol aprendiz
-    await Aprendiz.create({
-      id_persona: idPersona, 
+      estado: true,
       fecha_registro: dateStr
     });
 
+    const id: any = await Person.findOne({where: {email: email}});
+
+    const rolPerson = await User.create({
+      id_persona: id.id_persona,
+      id_rol: 1,
+      username: username,
+      password: hashedPassword
+    });
+
+    //Información para usar en el email
+    const infoEmail = {
+      nombre,
+      username,
+      email,
+      password
+    }
+
+    await enviarMensajeInsideServer( infoEmail, "Usuario registrado" );
+
+
     res.json({
-      msg: "Usuario" +nombre+ "creado exitosamente",
+      msg: "Usuario " +nombre+ " creado exitosamente"
     });
 
   } catch (error) {
@@ -74,68 +147,133 @@ export const newPersona = async (req: Request, res: Response) => {
 
 }
 
-//El usuario inicia sesión
-export const LoginPersona = async (req: Request, res: Response) => { 
+//Deshabilita a un usuario
+export const disabledPersona = async (req: Request, res: Response) => { 
 
-  const { email, password } = req.body;
-  
-  //Valida si el usuario existe
-  const user: any = await Person.findOne({ where: { email: email } });
-  
-  try { 
+  const {nombre} = req.body;
+
+  //Encuentra al usuario
+  const user: any = await Person.findOne({ where: { nombre: nombre } });
+
+  try{
+
+    //Si se encuentra registrado
     if (!user) {
       return res.status(400).json({
-        msg: "El usuario no existe, verifique el correo o contraseña"
+        msg: "No existe usuario "+ nombre
       });
     }
 
-    //Valida el password
-    const passwordValid = await bcrypt.compare(password, user.password);
-  
-    if (!passwordValid) {
-      console.log("hola")
-      return res.status(400).json({
-        msg: "Correo eléctronico o contraseña no valida"
+    if(!user.estado){
+      return res.status(401).json({
+        msg: "Ya se encuentra deshabilitado"
       });
     }
 
-    if (!user.estado) {
-      console.log("Estado Desactivado")
-      return res.status(400).json({
-        msg: user.nombre+" no se encuentra activo, comuníquese con el ADMIN"
-      });
+    const status_User = await Person.update(
+      {estado: false},
+      {where: {id_persona: user.id_persona}}
+    );
+
+    if(!status_User){
+      return res.status(401).json({
+        msg: "Se ha ocurrido un error con el proceso"}
+      );
     }
 
-    //Se genera el token
-    const token = jwt.sign({
-      email:email
-    }, process.env.PASSWORD_KEY || "Magic Secret");
+    res.status(200).json({
+      msg: "Se ha deshabilitado el usuario "+ nombre
+    });
 
-    res.json(token);
-    
   } catch (error) {
     res.status(400).json({
       msg: "¡Ha ocurrido un error!"
     });
   }
-
+  
 }
 
 //Elimina a un usuario
-export const deletePersona = async (req: Request, res: Response) => { 
+export const deletePersona = async (req: Request, res: Response) => {
 
-  const { email } = req.body;  
+  const { nombre } = req.body;
 
-  //Encuentra al usuario
-  const user: any = await Person.findOne({ where: { email: email } });
+  try {
+    // Encuentra al usuario
+    const user: any = await Person.findOne({ where: { nombre: nombre } });
 
-  //Si se encuentra registrado
-  if (!user) {
-    return res.status(400).json({
-      msg: "Se ha generado un error, comuníquese con el ADMIN"
+    // Si no se encuentra registrado
+    if (!user) {
+      return res.status(400).json({
+        msg: "No existe usuario " + nombre
+      });
+    }
+
+    // Eliminar al usuario
+    const deletedRows = await Person.destroy({
+      where: { id_persona: user.id_persona }
+    });
+
+    if (deletedRows === 1) {
+      return res.status(200).json({
+        msg: "Se ha eliminado el usuario " + nombre
+      });
+    } else {
+      return res.status(401).json({
+        msg: "No se pudo eliminar el usuario"
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      msg: "¡Ha ocurrido un error!"
     });
   }
 
-  //Se procede a cambiar el estado
-  
 }
+
+//Habilita a un usuario
+export const enabledPersona = async (req: Request, res: Response) => {
+
+  const {nombre} = req.body;
+
+  //Encuentra al usuario
+  const user: any = await Person.findOne({ where: { nombre: nombre } });
+
+  try{
+
+    //Si se encuentra registrado
+    if (!user) {
+      return res.status(400).json({
+        msg: "No existe usuario "+ nombre
+      });
+    }
+
+    if(user.estado){
+      return res.status(401).json({
+        msg: "Ya se encuentra habilitado"
+      });
+    }
+
+    const status_User = await Person.update(
+      {estado: true},
+      {where: {id_persona: user.id_persona}}
+    );
+
+    if(!status_User){
+      return res.status(401).json({
+        msg: "Se ha ocurrido un error con el proceso"
+      }
+      );
+    }
+
+    res.status(200).json({
+      msg: "Se ha habilitado el usuario "+ nombre
+    });
+
+  } catch (error) {
+    res.status(400).json({
+      msg: "¡Ha ocurrido un error!"
+    });
+  }
+
+} 

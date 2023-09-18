@@ -17,6 +17,9 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const curso_1 = __importDefault(require("../routers/curso"));
 const persona_1 = __importDefault(require("../routers/persona"));
+const auth_1 = __importDefault(require("../routers/auth"));
+const module_1 = __importDefault(require("../routers/module"));
+const quiz_1 = __importDefault(require("../routers/quiz"));
 const connection_1 = __importDefault(require("../db/connection"));
 class Server {
     constructor() {
@@ -34,7 +37,10 @@ class Server {
     }
     routers() {
         this.app.use("/api/cursos", curso_1.default),
-            this.app.use("/api/personas", persona_1.default);
+            this.app.use("/api/personas", persona_1.default),
+            this.app.use("/api/auth", auth_1.default),
+            this.app.use("/api/module", module_1.default),
+            this.app.use("/api/quiz", quiz_1.default);
     }
     middlewares() {
         //Paseo body

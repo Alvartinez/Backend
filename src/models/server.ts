@@ -2,8 +2,9 @@ import express from "express";
 import cors from "cors";
 import routesCourse from "../routers/curso";
 import routesPersona from "../routers/persona";
-import { Course } from "./curso";
-import { Person } from "./persona";
+import routesAuth from "../routers/auth";
+import routesModule from '../routers/module';
+import routesQuiz from '../routers/quiz';
 import sequelize from "../db/connection";
 export class Server{
 
@@ -27,7 +28,10 @@ export class Server{
 
     routers() {
         this.app.use("/api/cursos", routesCourse),
-        this.app.use("/api/personas", routesPersona)
+        this.app.use("/api/personas", routesPersona),
+        this.app.use("/api/auth", routesAuth),
+        this.app.use("/api/module", routesModule),
+        this.app.use("/api/quiz", routesQuiz)
     }
 
     middlewares() {

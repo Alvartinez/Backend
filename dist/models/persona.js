@@ -12,13 +12,6 @@ exports.Person = connection_1.default.define("persona", {
         primaryKey: true,
         autoIncrement: true
     },
-    id_usuario: {
-        type: sequelize_1.DataTypes.INTEGER,
-        references: {
-            model: "usuario",
-            key: "id_usuario"
-        }
-    },
     nombre: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
@@ -29,12 +22,12 @@ exports.Person = connection_1.default.define("persona", {
         unique: true,
         allowNull: false
     },
-    password: {
-        type: sequelize_1.DataTypes.STRING,
-        allowNull: false
-    },
     estado: {
         type: sequelize_1.DataTypes.BOOLEAN,
+        allowNull: false
+    },
+    fecha_registro: {
+        type: sequelize_1.DataTypes.DATE,
         allowNull: false
     }
 }, {

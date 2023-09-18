@@ -7,13 +7,6 @@ export const Person = sequelize.define("persona", {
         primaryKey: true,
         autoIncrement: true
     },
-    id_usuario: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: "usuario",
-            key: "id_usuario"
-        }
-    },
     nombre: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -24,12 +17,12 @@ export const Person = sequelize.define("persona", {
         unique: true,
         allowNull: false
     },
-    password: {
-        type: DataTypes.STRING,
-        allowNull:false
-    },
     estado: {
         type: DataTypes.BOOLEAN,
+        allowNull:false
+    },
+    fecha_registro: {
+        type: DataTypes.DATE,
         allowNull:false
     }
     

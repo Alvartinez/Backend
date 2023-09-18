@@ -1,12 +1,15 @@
 import { Router } from "express";
-import { getPerson, LoginPersona, newPersona, deletePersona } from "../controllers/persona";
+import { getPerson, getPeople, newPersona, deletePersona, disabledPersona, enabledPersona } from "../controllers/persona";
 import validateToken from "./validate-token";
 
 const router = Router();
 
-router.get("/", getPerson);
+router.get("/", getPeople);
+router.get("/User", getPerson);
 router.post("/newUser", newPersona);
-router.post("/loginUser", LoginPersona);
-router.delete("/", deletePersona)
+router.put("/disabledUser", disabledPersona);
+router.put("/enabledUser", enabledPersona);
+router.delete("/deleteUser", deletePersona);
+
 
 export default router;

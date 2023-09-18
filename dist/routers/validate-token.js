@@ -10,7 +10,7 @@ const validateToken = (req, res, next) => {
         //TOKEN
         try {
             const bearerToken = headerToken.slice(7);
-            jsonwebtoken_1.default.verify(bearerToken, process.env.PASSWORD_KEY || "Pepito123");
+            jsonwebtoken_1.default.verify(bearerToken, process.env.PASSWORD_KEY || "Magic Secret");
             next();
         }
         catch (error) {

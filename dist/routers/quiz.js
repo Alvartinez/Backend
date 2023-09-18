@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const quiz_1 = require("../controllers/quiz");
+const responseQuiz_1 = require("../controllers/responseQuiz");
+const router = (0, express_1.Router)();
+router.get("/quiz/:id", quiz_1.getQuiz);
+router.post("/saveQuiz", responseQuiz_1.resultadoQuiz);
+router.get("/", responseQuiz_1.getResultsQuiz);
+exports.default = router;

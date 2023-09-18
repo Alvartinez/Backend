@@ -26,4 +26,7 @@ exports.Permiso = connection_1.default.define("permiso", {
         type: sequelize_1.DataTypes.BOOLEAN,
         allowNull: false
     }
+}, {
+    tableName: 'permiso',
+    timestamps: false
 });
