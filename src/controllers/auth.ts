@@ -7,6 +7,7 @@ import { User } from "../models/user";
 import { Rol } from "../models/rol";
 import { QueryTypes } from 'sequelize'; 
 import sequelize from "../db/connection";
+import { enviarMensajeInsideServer } from "../helper/sendEmail";
 
 //El usuario inicia sesión
 export const LoginPersona = async (req: Request, res: Response) => { 

@@ -20,7 +20,7 @@ const enviarMensajeInsideServer = (usuarioDestino, asunto) => __awaiter(void 0, 
     const CLIENTD_ID = "877162813446-785knmt5drhn9urrq3nrmck4jpfme4t6.apps.googleusercontent.com";
     const CLIENT_SECRET = "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";
     const REDIRECT_URI = "https://developers.google.com/oauthplayground";
-    const REFRESH_TOKEN = "1//04YFdlYYgUz6mCgYIARAAGAQSNwF-L9IrKBDMMqRzf5gW40LQIQzKCyeRLgNZVGsXEiaZhgcwzzlNMkmykXNS4iMFVcP6XvO9oJA";
+    const REFRESH_TOKEN = "1//04wQ9rM-g9Nj5CgYIARAAGAQSNwF-L9IruClXXes-upfd7CU7m5TImyphbUOzMe8RZEs6kLjhacuVVQexsnTLphhZ2idDe6vQpRc";
     const oAuth2Client = new googleapis_1.google.auth.OAuth2(process.env.CLIENTD_ID || CLIENTD_ID, process.env.CLIENT_SECRET || CLIENT_SECRET, process.env.REDIRECT_URI || REDIRECT_URI);
     oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
     try {
